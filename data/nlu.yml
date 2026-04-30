@@ -1,0 +1,274 @@
+version: "3.1"
+
+nlu:
+- intent: greet
+  examples: |
+    - hey
+    - hello
+    - hi
+    - hello there
+    - good morning
+    - good evening
+    - hey there
+    - hi there
+    - greetings
+    - good afternoon
+    - howdy
+    - what's up
+    - yo
+    - hiya
+    - hey i need help
+
+- intent: goodbye
+  examples: |
+    - bye
+    - goodbye
+    - see you later
+    - have a nice day
+    - take care
+    - cu later
+    - thanks bye
+    - that's all thanks
+    - nothing else bye
+    - i'm done
+    - no more questions
+    - that would be all
+
+- intent: affirm
+  examples: |
+    - yes
+    - yep
+    - yeah
+    - sure
+    - of course
+    - that's right
+    - correct
+    - absolutely
+    - indeed
+    - right
+    - ok
+    - okay
+    - sounds good
+    - please do
+    - yes that is the ID
+    - that's my order number
+    - yes that's correct
+    - correct that's it
+    - yeah that one
+    - yes please
+    - that's the one
+
+- intent: deny
+  examples: |
+    - no
+    - nope
+    - nah
+    - not really
+    - i don't think so
+    - that's not right
+    - incorrect
+    - no thanks
+    - not that
+    - no that's wrong
+    - wrong
+    - absolutely not
+
+- intent: bot_challenge
+  examples: |
+    - are you a bot?
+    - are you a human?
+    - am I talking to a bot?
+    - am I talking to a real person?
+    - is this an automated response?
+    - are you real?
+    - are you a robot?
+    - is this a chatbot?
+    - who am I speaking with?
+    - are you an AI?
+    - is there a real person there?
+
+- intent: check_order_status
+  examples: |
+    - what is the status of my order [ORD-12345](order_id)?
+    - where is my order [ORD-67890](order_id)?
+    - can you check my order status for [ORD-11111](order_id)?
+    - i want to know the status of order [ORD-22222](order_id)
+    - track my order [ORD-33333](order_id)
+    - when will my order [ORD-44444](order_id) arrive?
+    - has my order [ORD-55555](order_id) been shipped?
+    - what happened to my order [ORD-66666](order_id)?
+    - check status of [ORD-77777](order_id)
+    - my order number is [ORD-88888](order_id), what's the status?
+    - order status for [ORD-99999](order_id)
+    - i need an update on [ORD-12121](order_id)
+    - where's my package [ORD-34343](order_id)?
+    - delivery status of [ORD-56565](order_id)
+    - can you look up order [ORD-78787](order_id)?
+    - what's happening with my order [ORD-90909](order_id)?
+
+- intent: track_order
+  examples: |
+    - track my package
+    - i want to track my shipment
+    - where is my delivery?
+    - track my order
+    - i need to track a package
+    - can you track my delivery?
+    - where is my shipment?
+    - tracking my order [ORD-12345](order_id)
+    - track package [ORD-67890](order_id)
+    - how to track my order?
+    - i haven't received my order yet
+    - my package hasn't arrived
+    - when will I receive my order?
+    - delivery estimate for my order
+    - shipping status
+
+- intent: return_refund
+  examples: |
+    - i want to return my order
+    - how do I get a refund?
+    - i need to return an item
+    - can I return this product?
+    - refund request for order [ORD-12345](order_id)
+    - i want my money back
+    - how to initiate a return?
+    - return policy for my order
+    - i'd like a refund please
+    - can I get a refund for order [ORD-67890](order_id)?
+    - return this item [ORD-11111](order_id)
+    - i'm not satisfied, i want a return
+    - how long does a refund take?
+    - what's your return policy?
+    - i need to return something
+    - exchange my order [ORD-22222](order_id)
+    - return process for my purchase
+
+- intent: product_inquiry
+  examples: |
+    - tell me about [wireless headphones](product_name)
+    - i'm looking for information about [laptop stand](product_name)
+    - do you have [mechanical keyboard](product_name)?
+    - what are the features of [smart watch](product_name)?
+    - is [usb-c hub](product_name) in stock?
+    - price of [bluetooth speaker](product_name)
+    - i want to buy [monitor arm](product_name)
+    - tell me more about [webcam](product_name)
+    - specifications for [wireless mouse](product_name)
+    - do you sell [phone case](product_name)?
+    - what colors does [headphones](product_name) come in?
+    - reviews for [desk lamp](product_name)
+    - is [tablet](product_name) available?
+    - i need info about [power bank](product_name)
+    - what products do you recommend?
+
+- intent: billing_question
+  examples: |
+    - i have a billing question
+    - why was i charged twice?
+    - i need help with my invoice
+    - payment failed on my order
+    - can i change my payment method to [credit card](payment_method)?
+    - billing issue with my account
+    - i was overcharged
+    - refund hasn't appeared on my [credit card](payment_method)
+    - payment methods accepted
+    - can i pay with [upi](payment_method)?
+    - invoice for order [ORD-12345](order_id)
+    - my payment was declined
+    - how do i update my billing info?
+    - charge on my [debit card](payment_method) looks wrong
+    - when will i get my refund?
+    - can i split payment between [credit card](payment_method) and [bank transfer](payment_method)?
+
+- intent: complaint
+  examples: |
+    - i have a complaint
+    - i'm very unhappy with my order
+    - this is unacceptable service
+    - my product arrived damaged - [damaged_item](complaint_type)
+    - i received the wrong item - [wrong_item](complaint_type)
+    - my delivery is very late - [late_delivery](complaint_type)
+    - the quality is terrible - [poor_quality](complaint_type)
+    - this is the worst experience
+    - i want to file a complaint about [late_delivery](complaint_type)
+    - i'm frustrated with the service
+    - your product is defective
+    - i've been waiting for weeks - [late_delivery](complaint_type)
+    - the item doesn't match the description
+    - i want to speak to a manager about my complaint
+    - this is really bad customer service
+    - i'm very disappointed
+
+- intent: handoff_to_human
+  examples: |
+    - i want to talk to a human
+    - connect me to an agent
+    - can i speak to a real person?
+    - i need human assistance
+    - transfer me to a support agent
+    - let me talk to someone
+    - i want to speak with a representative
+    - get me a human agent
+    - can a real person help me?
+    - i need to talk to customer service
+    - please connect me to support
+    - i'd prefer to speak with someone
+    - is there a human available?
+    - put me through to an agent
+    - i want to talk to your manager
+
+- intent: out_of_scope
+  examples: |
+    - what's the weather today?
+    - tell me a joke
+    - what's the latest news?
+    - who won the game last night?
+    - what time is it?
+    - how's the stock market doing?
+    - can you recommend a restaurant?
+    - what's the capital of france?
+    - play me a song
+    - set a timer for 5 minutes
+    - translate this to spanish
+    - what movies are playing?
+
+- intent: ask_order_email
+  examples: |
+    - what is the email for this order
+    - what email was used for this order
+    - what's the user email for this shipment
+    - which email is associated with my order
+    - what email did i use for this order
+    - can you tell me the email on this order
+    - email address for order [ORD-12345](order_id)
+    - what email is linked to my order
+    - what's the account email for this order
+    - show me the email for this order
+    - what email address is on file for this order
+
+- intent: ask_order_details
+  examples: |
+    - show me full order details
+    - i want all the details for my order
+    - give me complete order information
+    - what are the full details of my order
+    - show everything about my order
+    - can i see all order details
+    - full details for order [ORD-12345](order_id)
+    - tell me everything about this order
+    - order summary please
+    - what's included in my order
+
+- intent: provide_email
+  examples: |
+    - my email is [john@example.com](email)
+    - [jane.doe@company.org](email)
+    - you can reach me at [testuser@gmail.com](email)
+    - email: [bob@domain.com](email)
+    - my account email is [alice@mail.com](email)
+    - send it to [user@outlook.com](email)
+    - [contact@business.com](email)
+    - it's [hello@world.com](email)
+    - the email is [myemail@test.com](email)
+    - [user123@mail.com](email)

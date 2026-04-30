@@ -1,0 +1,91 @@
+#### This file contains tests to evaluate that your bot behaves as expected.
+#### If you want to learn more, please see the docs: https://rasa.com/docs/rasa/testing-your-assistant
+
+stories:
+- story: greet and check order
+  steps:
+  - user: |
+      hello there!
+    intent: greet
+  - action: utter_greet
+  - user: |
+      what is the status of my order ORD-12345?
+    intent: check_order_status
+    entities:
+    - order_id: ORD-12345
+  - action: order_status_form
+  - active_loop: order_status_form
+  - slot_was_set:
+    - order_id: ORD-12345
+  - action: action_check_order_status
+  - action: utter_order_status
+
+- story: greet and goodbye
+  steps:
+  - user: |
+      hi!
+    intent: greet
+  - action: utter_greet
+  - user: |
+      bye!
+    intent: goodbye
+  - action: utter_goodbye
+
+- story: return refund flow
+  steps:
+  - user: |
+      I want to return my order
+    intent: return_refund
+  - action: return_refund_form
+  - active_loop: return_refund_form
+
+- story: product inquiry
+  steps:
+  - user: |
+      tell me about wireless headphones
+    intent: product_inquiry
+    entities:
+    - product_name: wireless headphones
+  - action: utter_product_info
+
+- story: billing question
+  steps:
+  - user: |
+      i have a billing question
+    intent: billing_question
+  - action: utter_billing_info
+
+- story: complaint
+  steps:
+  - user: |
+      i'm very unhappy with my order
+    intent: complaint
+  - action: utter_complaint_acknowledge
+
+- story: handoff to human
+  steps:
+  - user: |
+      i want to talk to a human
+    intent: handoff_to_human
+  - action: action_escalate_to_agent
+
+- story: bot challenge
+  steps:
+  - user: |
+      are you a bot?
+    intent: bot_challenge
+  - action: utter_iamabot
+
+- story: out of scope
+  steps:
+  - user: |
+      what's the weather today?
+    intent: out_of_scope
+  - action: utter_default
+
+- story: fallback
+  steps:
+  - user: |
+      asdfghjkl
+    intent: nlu_fallback
+  - action: utter_please_rephrase

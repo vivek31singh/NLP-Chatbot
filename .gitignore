@@ -1,0 +1,40 @@
+# Documentation
+prd.md
+
+# Python
+.venv
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Rasa
+.rasa/
+models/
+
+# Node
+node_modules/
+package-lock.json
+
+# Database
+*.db
+*.sqlite3
+
+# Environment
+.env
+.env.*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

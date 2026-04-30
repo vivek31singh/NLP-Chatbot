@@ -1,0 +1,8 @@
+{
+  "name": "nlp-chatbot-webchat",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@rasahq/rasa-webchat": "^2.8.0"
+  }
+}

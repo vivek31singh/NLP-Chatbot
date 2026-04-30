@@ -1,0 +1,118 @@
+version: "3.1"
+
+rules:
+
+- rule: Respond to greeting
+  steps:
+  - intent: greet
+  - action: utter_greet
+
+- rule: Respond to goodbye
+  steps:
+  - intent: goodbye
+  - action: utter_goodbye
+
+- rule: Respond to bot challenge
+  steps:
+  - intent: bot_challenge
+  - action: utter_iamabot
+
+- rule: Ask for order ID when checking order status
+  steps:
+  - intent: check_order_status
+  - action: order_status_form
+  - active_loop: order_status_form
+
+- rule: Submit order status form
+  condition:
+  - active_loop: order_status_form
+  steps:
+  - action: order_status_form
+  - active_loop: null
+  - action: action_submit_order_status_form
+
+- rule: Ask for order ID and email when returning
+  steps:
+  - intent: return_refund
+  - action: return_refund_form
+  - active_loop: return_refund_form
+
+- rule: Submit return refund form
+  condition:
+  - active_loop: return_refund_form
+  steps:
+  - action: return_refund_form
+  - active_loop: null
+  - action: action_submit_return_refund_form
+
+- rule: Provide order email when order_id is known
+  condition:
+  - slot_was_set:
+    - order_id
+  steps:
+  - intent: ask_order_email
+  - action: action_get_order_email
+
+- rule: Ask for order ID when email requested but unknown
+  condition:
+  - active_loop: null
+  steps:
+  - intent: ask_order_email
+  - action: action_get_order_email
+
+- rule: Provide order details when order_id is known
+  condition:
+  - slot_was_set:
+    - order_id
+  steps:
+  - intent: ask_order_details
+  - action: action_get_order_details
+
+- rule: Ask for order ID when details requested but unknown
+  condition:
+  - active_loop: null
+  steps:
+  - intent: ask_order_details
+  - action: action_get_order_details
+
+- rule: Handle product inquiry
+  condition:
+  - active_loop: null
+  steps:
+  - intent: product_inquiry
+  - action: utter_product_info
+
+- rule: Handle billing question
+  condition:
+  - active_loop: null
+  steps:
+  - intent: billing_question
+  - action: utter_billing_info
+
+- rule: Acknowledge complaint
+  condition:
+  - active_loop: null
+  steps:
+  - intent: complaint
+  - action: utter_complaint_acknowledge
+
+- rule: Hand off to human agent
+  condition:
+  - active_loop: null
+  steps:
+  - intent: handoff_to_human
+  - action: action_escalate_to_agent
+
+- rule: Ask user to rephrase on fallback
+  condition:
+  - active_loop: null
+  steps:
+  - intent: nlu_fallback
+  - action: utter_please_rephrase
+
+- rule: Handle out of scope questions
+  condition:
+  - active_loop: null
+  steps:
+  - intent: out_of_scope
+  - action: utter_default

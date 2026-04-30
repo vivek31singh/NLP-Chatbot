@@ -1,0 +1,128 @@
+version: "3.1"
+
+stories:
+
+- story: greet then check order status
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: check_order_status
+  - action: order_status_form
+  - active_loop: order_status_form
+  - slot_was_set:
+    - order_id: ORD-12345
+  - active_loop: null
+  - action: action_submit_order_status_form
+  - intent: affirm
+  - action: utter_thank_you
+  - intent: goodbye
+  - action: utter_goodbye
+
+- story: return and refund flow
+  steps:
+  - intent: return_refund
+  - action: return_refund_form
+  - active_loop: return_refund_form
+  - slot_was_set:
+    - order_id: ORD-11111
+    - email: test@example.com
+  - active_loop: null
+  - action: action_submit_return_refund_form
+  - intent: affirm
+  - action: utter_thank_you
+
+- story: product inquiry flow
+  steps:
+  - intent: product_inquiry
+  - action: utter_product_info
+  - intent: affirm
+  - action: action_get_product_info
+  - intent: affirm
+  - action: utter_thank_you
+
+- story: billing question flow
+  steps:
+  - intent: billing_question
+  - action: utter_billing_info
+  - intent: affirm
+  - action: utter_thank_you
+
+- story: complaint and handoff
+  steps:
+  - intent: complaint
+  - action: utter_complaint_acknowledge
+  - intent: handoff_to_human
+  - action: action_escalate_to_agent
+
+- story: direct handoff request
+  steps:
+  - intent: handoff_to_human
+  - action: action_escalate_to_agent
+
+- story: track order flow
+  steps:
+  - intent: track_order
+  - action: utter_ask_order_id
+  - intent: check_order_status
+    entities:
+    - order_id: ORD-12345
+  - action: order_status_form
+  - active_loop: order_status_form
+  - slot_was_set:
+    - order_id: ORD-12345
+  - active_loop: null
+  - action: action_submit_order_status_form
+  - intent: affirm
+  - action: utter_thank_you
+
+- story: fallback and rephrase
+  steps:
+  - intent: nlu_fallback
+  - action: utter_please_rephrase
+  - intent: check_order_status
+  - action: order_status_form
+  - active_loop: order_status_form
+
+- story: bot challenge conversation
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: bot_challenge
+  - action: utter_iamabot
+  - intent: affirm
+  - action: utter_thank_you
+
+- story: greet and goodbye
+  steps:
+  - intent: greet
+  - action: utter_greet
+  - intent: goodbye
+  - action: utter_goodbye
+
+- story: check order status then ask for email
+  steps:
+  - intent: check_order_status
+    entities:
+    - order_id: ORD-12345
+  - action: order_status_form
+  - active_loop: order_status_form
+  - slot_was_set:
+    - order_id: ORD-12345
+  - active_loop: null
+  - action: action_submit_order_status_form
+  - intent: ask_order_email
+  - action: action_get_order_email
+
+- story: check order status then ask for full details
+  steps:
+  - intent: check_order_status
+    entities:
+    - order_id: ORD-12345
+  - action: order_status_form
+  - active_loop: order_status_form
+  - slot_was_set:
+    - order_id: ORD-12345
+  - active_loop: null
+  - action: action_submit_order_status_form
+  - intent: ask_order_details
+  - action: action_get_order_details

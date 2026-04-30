@@ -1,0 +1,162 @@
+version: "3.1"
+
+actions:
+  - action_check_order_status
+  - action_get_product_info
+  - action_escalate_to_agent
+  - action_submit_order_status_form
+  - action_submit_return_refund_form
+  - action_get_order_email
+  - action_get_order_details
+
+intents:
+  - greet
+  - goodbye
+  - affirm
+  - deny
+  - bot_challenge
+  - check_order_status
+  - track_order
+  - return_refund
+  - product_inquiry
+  - billing_question
+  - complaint
+  - handoff_to_human
+  - out_of_scope
+  - ask_order_email
+  - ask_order_details
+  - provide_email
+
+entities:
+  - order_id
+  - product_name
+  - email
+  - complaint_type
+  - payment_method
+
+slots:
+  order_id:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: order_id
+  email:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: email
+  product_name:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: product_name
+  complaint_type:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: complaint_type
+  payment_method:
+    type: text
+    mappings:
+      - type: from_entity
+        entity: payment_method
+  is_authenticated:
+    type: bool
+    mappings:
+      - type: custom
+
+forms:
+  order_status_form:
+    required_slots:
+      - order_id
+  return_refund_form:
+    required_slots:
+      - order_id
+      - email
+
+responses:
+  utter_greet:
+  - text: "Hello! Welcome to our customer support. How can I help you today?"
+    buttons:
+      - title: "Track Order"
+        payload: "/track_order"
+      - title: "Return/Refund"
+        payload: "/return_refund"
+      - title: "Billing Question"
+        payload: "/billing_question"
+      - title: "Talk to Agent"
+        payload: "/handoff_to_human"
+  - text: "Hi there! I'm your virtual assistant. What can I do for you?"
+    buttons:
+      - title: "Check Order Status"
+        payload: "/check_order_status"
+      - title: "Product Inquiry"
+        payload: "/product_inquiry"
+      - title: "File a Complaint"
+        payload: "/complaint"
+      - title: "Talk to Agent"
+        payload: "/handoff_to_human"
+
+  utter_goodbye:
+  - text: "Thank you for contacting us! Have a great day."
+  - text: "Goodbye! Don't hesitate to reach out if you need anything else."
+  - text: "Bye! Hope I was able to help. Have a wonderful day!"
+
+  utter_iamabot:
+  - text: "I am a customer support chatbot powered by AI. I can help you with orders, returns, billing, and product information. If you need a human agent, just ask!"
+  - text: "Yes, I'm a virtual assistant. I'm here to help with your queries. For complex issues, I can connect you with a human agent."
+
+  utter_ask_order_id:
+  - text: "Sure, I can help with that. Could you please provide your order ID? It usually looks like ORD-12345."
+  - text: "I'd be happy to look into that. Please share your order ID so I can find your order."
+
+  utter_ask_email:
+  - text: "And could you also provide the email address associated with your account?"
+
+  utter_order_status:
+  - text: "I found your order {order_id}. Let me pull up the details for you."
+
+  utter_return_refund_process:
+  - text: "Here's our return and refund process:\n1. Your return request has been initiated for order {order_id}.\n2. You'll receive a return shipping label at {email}.\n3. Once we receive the item, we'll process your refund within 5-7 business days.\n\nIs there anything else I can help with?"
+
+  utter_product_info:
+  - text: "I'd be happy to help with product information. Which product are you interested in?"
+  - text: "Sure! Could you tell me the name of the product you're looking for?"
+
+  utter_billing_info:
+  - text: "I can help with billing questions. Could you provide more details about what you'd like to know? For example, are you asking about a specific charge, invoice, or payment method?"
+
+  utter_complaint_acknowledge:
+  - text: "I'm sorry to hear about your experience. Your feedback is important to us. Let me look into this right away."
+  - text: "I sincerely apologize for the inconvenience. Could you please tell me more about the issue so I can help resolve it?"
+
+  utter_handoff_message:
+  - text: "I'm connecting you with a human agent who can better assist you. Please hold on for a moment."
+  - text: "Let me transfer you to one of our support agents. They'll be with you shortly."
+
+  utter_default:
+  - text: "I'm sorry, I didn't quite understand that. Could you please rephrase your question?"
+  - text: "I'm not sure I follow. Could you try asking in a different way?"
+
+  utter_please_rephrase:
+  - text: "I'm having trouble understanding. Could you rephrase that or choose from the options below?"
+    buttons:
+      - title: "Track Order"
+        payload: "/track_order"
+      - title: "Return/Refund"
+        payload: "/return_refund"
+      - title: "Billing Question"
+        payload: "/billing_question"
+      - title: "Talk to Agent"
+        payload: "/handoff_to_human"
+
+  utter_thank_you:
+  - text: "You're welcome! Is there anything else I can help with?"
+  - text: "Happy to help! Let me know if you need anything else."
+
+  utter_no_order_id:
+  - text: "I couldn't find an order ID in your message. Could you please provide it? It typically starts with 'ORD-' followed by numbers."
+
+session_config:
+  session_expiration_time: 60
+  carry_over_slots_to_new_session: true
