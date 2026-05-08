@@ -1,13 +1,18 @@
 version: "3.1"
 
 actions:
-  - action_check_order_status
   - action_get_product_info
   - action_escalate_to_agent
   - action_submit_order_status_form
   - action_submit_return_refund_form
   - action_get_order_email
   - action_get_order_details
+  - action_handle_fallback
+  - action_handle_billing_charge
+  - action_handle_billing_invoice
+  - action_handle_billing_payment
+  - action_file_complaint
+  - action_submit_feedback
 
 intents:
   - greet
@@ -20,12 +25,18 @@ intents:
   - return_refund
   - product_inquiry
   - billing_question
+  - billing_charge
+  - billing_invoice
+  - billing_payment_method
   - complaint
   - handoff_to_human
   - out_of_scope
   - ask_order_email
   - ask_order_details
   - provide_email
+  - small_talk
+  - frustrated
+  - ask_capabilities
 
 entities:
   - order_id
@@ -64,6 +75,11 @@ slots:
     type: bool
     mappings:
       - type: custom
+  fallback_count:
+    type: float
+    initial_value: 0
+    mappings:
+      - type: custom
 
 forms:
   order_status_form:
@@ -72,7 +88,7 @@ forms:
   return_refund_form:
     required_slots:
       - order_id
-      - email
+      - complaint_type
 
 responses:
   utter_greet:
@@ -125,6 +141,27 @@ responses:
 
   utter_billing_info:
   - text: "I can help with billing questions. Could you provide more details about what you'd like to know? For example, are you asking about a specific charge, invoice, or payment method?"
+    buttons:
+      - title: "Specific Charge"
+        payload: "/billing_charge"
+      - title: "Invoice"
+        payload: "/billing_invoice"
+      - title: "Payment Method"
+        payload: "/billing_payment_method"
+
+  utter_billing_charge_ask_order:
+  - text: "I'd be happy to look into a charge for you. Could you please provide your order ID so I can check the details?"
+
+  utter_billing_invoice_ask_order:
+  - text: "I can help you get a copy of your invoice. Could you please provide your order ID?"
+
+  utter_billing_payment_options:
+  - text: "We accept the following payment methods:\n\n- **Credit Card** (Visa, Mastercard, Amex)\n- **Debit Card**\n- **UPI**\n- **Bank Transfer**\n- **Net Banking**\n\nYou can update your payment method from your account settings, or I can connect you with an agent for help. Would you like to do anything else?"
+    buttons:
+      - title: "Talk to Agent"
+        payload: "/handoff_to_human"
+      - title: "Update Payment"
+        payload: "/billing_payment_method"
 
   utter_complaint_acknowledge:
   - text: "I'm sorry to hear about your experience. Your feedback is important to us. Let me look into this right away."
@@ -140,6 +177,32 @@ responses:
 
   utter_please_rephrase:
   - text: "I'm having trouble understanding. Could you rephrase that or choose from the options below?"
+    buttons:
+      - title: "Track Order"
+        payload: "/track_order"
+      - title: "Return/Refund"
+        payload: "/return_refund"
+      - title: "Billing Question"
+        payload: "/billing_question"
+      - title: "Talk to Agent"
+        payload: "/handoff_to_human"
+
+  utter_fallback_escalate:
+  - text: "I'm sorry, I'm having difficulty understanding your request. Let me connect you with a human agent who can better assist you."
+    buttons:
+      - title: "Talk to Agent"
+        payload: "/handoff_to_human"
+
+  utter_frustrated_acknowledge:
+  - text: "I understand your frustration, and I'm sorry for the inconvenience. Let me connect you with a human agent right away who can help resolve this faster."
+  - text: "I apologize for the frustrating experience. I'll transfer you to a human agent immediately so they can assist you better."
+
+  utter_small_talk:
+  - text: "Thank you! I'm here to help. Is there anything else I can assist you with regarding your orders, returns, or billing?"
+  - text: "I appreciate that! If you need any help with your orders or account, feel free to ask anytime."
+
+  utter_capabilities:
+  - text: "I can help you with the following:\n\n- **Track Order** — Check status and delivery updates\n- **Return/Refund** — Initiate returns or request refunds\n- **Billing Questions** — Payment issues, invoices, charges\n- **Product Information** — Details about products we sell\n- **Order Details** — Full order info including email and shipping\n- **Complaints** — Report issues with your order\n\nJust type what you need help with, or use the quick-reply buttons!"
     buttons:
       - title: "Track Order"
         payload: "/track_order"

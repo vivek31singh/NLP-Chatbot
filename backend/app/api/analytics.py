@@ -1,3 +1,7 @@
+import json
+import logging
+import os
+import subprocess
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -5,6 +9,10 @@ from app.database import get_db
 from app.models.models import Conversation, Message, Feedback
 from app.schemas.schemas import AnalyticsOverview, IntentMetric
 from datetime import datetime, timedelta
+
+logger = logging.getLogger(__name__)
+
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["analytics"])
 
@@ -152,3 +160,68 @@ async def get_fallback_messages(limit: int = 50, db: Session = Depends(get_db)):
             })
 
     return results
+
+
+@router.get("/evaluation")
+async def get_evaluation_results():
+    """Run NLU evaluation and return structured results."""
+    results_dir = os.path.join(PROJECT_DIR, "results")
+    os.makedirs(results_dir, exist_ok=True)
+
+    try:
+        process = subprocess.run(
+            ["rasa", "test", "nlu", "--out", "results/"],
+            cwd=PROJECT_DIR,
+            capture_output=True,
+            text=True,
+            timeout=300,
+        )
+        if process.returncode != 0:
+            logger.error(f"rasa test nlu failed: {process.stderr}")
+    except subprocess.TimeoutExpired:
+        logger.error("rasa test nlu timed out after 300s")
+    except FileNotFoundError:
+        logger.error("rasa CLI not found")
+
+    response = {
+        "f1_scores": {"weighted": None, "macro": None, "micro": None},
+        "confusion_matrix_url": None,
+        "intent_report": {},
+        "note": None,
+    }
+
+    confusion_matrix_path = os.path.join(results_dir, "intent_confusion_matrix.png")
+    if os.path.exists(confusion_matrix_path):
+        response["confusion_matrix_url"] = "/results/intent_confusion_matrix.png"
+
+    report_path = os.path.join(results_dir, "intent_report.json")
+    if os.path.exists(report_path):
+        try:
+            with open(report_path, "r") as f:
+                report = json.load(f)
+
+            for intent_name, metrics in report.items():
+                if intent_name in ("accuracy", "weighted avg", "macro avg", "micro avg"):
+                    continue
+                response["intent_report"][intent_name] = {
+                    "precision": metrics.get("precision"),
+                    "recall": metrics.get("recall"),
+                    "f1_score": metrics.get("f1-score"),
+                    "support": metrics.get("support"),
+                }
+
+            if "weighted avg" in report:
+                response["f1_scores"]["weighted"] = round(report["weighted avg"]["f1-score"], 4)
+            if "macro avg" in report:
+                response["f1_scores"]["macro"] = round(report["macro avg"]["f1-score"], 4)
+            if "micro avg" in report:
+                response["f1_scores"]["micro"] = round(report["micro avg"]["f1-score"], 4)
+            if "accuracy" in report:
+                response["f1_scores"]["accuracy"] = round(report["accuracy"]["f1-score"], 4)
+        except (json.JSONDecodeError, KeyError, TypeError) as e:
+            logger.error(f"Failed to parse intent report: {e}")
+            response["note"] = "Evaluation ran but report parsing failed."
+    else:
+        response["note"] = "Evaluation completed but no intent_report.json found. Ensure test data is available."
+
+    return response

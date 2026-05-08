@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.rasa_client import rasa_client
-from app.schemas.schemas import ChatMessageRequest, ChatMessageResponse, FeedbackRequest
-from app.models.models import Conversation, Message, Feedback
+from app.schemas.schemas import ChatMessageRequest, ChatMessageResponse, FeedbackRequest, LogMessageRequest
+from app.models.models import Conversation, Message, Feedback, UncertainPrediction
 from app.services.chat_service import process_message
 from datetime import datetime
 import uuid
@@ -13,8 +13,6 @@ router = APIRouter(prefix="/api/v1/chat", tags=["chat"])
 
 @router.post("/message", response_model=ChatMessageResponse)
 async def send_message(request: ChatMessageRequest, db: Session = Depends(get_db)):
-    """Send a message and get the bot's response."""
-    # Get or create conversation
     conversation_id = request.conversation_id
     if not conversation_id:
         conversation = Conversation(
@@ -30,7 +28,6 @@ async def send_message(request: ChatMessageRequest, db: Session = Depends(get_db
         if not conversation:
             raise HTTPException(status_code=404, detail="Conversation not found")
 
-    # Store user message
     user_message = Message(
         conversation_id=conversation_id,
         sender_type="user",
@@ -39,7 +36,6 @@ async def send_message(request: ChatMessageRequest, db: Session = Depends(get_db
     db.add(user_message)
     db.commit()
 
-    # Process through Rasa
     bot_response = await process_message(
         message=request.message,
         sender_id=conversation.session_id,
@@ -50,9 +46,59 @@ async def send_message(request: ChatMessageRequest, db: Session = Depends(get_db
     return bot_response
 
 
+@router.post("/log")
+async def log_message(request: LogMessageRequest, db: Session = Depends(get_db)):
+    conversation = Conversation(
+        session_id=request.session_id or str(uuid.uuid4()),
+        channel="web",
+    )
+    db.add(conversation)
+    db.commit()
+    db.refresh(conversation)
+
+    user_message = Message(
+        conversation_id=conversation.id,
+        sender_type="user",
+        content=request.message,
+        intent=request.intent,
+        confidence=request.confidence,
+    )
+    db.add(user_message)
+
+    bot_message = Message(
+        conversation_id=conversation.id,
+        sender_type="bot",
+        content=request.bot_response,
+        intent=request.intent,
+        confidence=request.confidence,
+    )
+    db.add(bot_message)
+    db.commit()
+
+    confidence = request.confidence
+    if confidence is not None and confidence < 0.65:
+        existing = (
+            db.query(UncertainPrediction)
+            .filter(
+                UncertainPrediction.text == request.message,
+                UncertainPrediction.is_annotated == False,
+            )
+            .first()
+        )
+        if not existing:
+            uncertain = UncertainPrediction(
+                text=request.message,
+                predicted_intent=request.intent,
+                confidence=confidence,
+            )
+            db.add(uncertain)
+            db.commit()
+
+    return {"status": "logged", "conversation_id": conversation.id}
+
+
 @router.get("/conversations", response_model=list)
 async def list_conversations(db: Session = Depends(get_db)):
-    """List all conversations."""
     conversations = db.query(Conversation).order_by(Conversation.created_at.desc()).all()
     result = []
     for c in conversations:
@@ -70,7 +116,6 @@ async def list_conversations(db: Session = Depends(get_db)):
 
 @router.get("/conversations/{conversation_id}/messages")
 async def get_conversation_messages(conversation_id: str, db: Session = Depends(get_db)):
-    """Get all messages for a conversation."""
     messages = (
         db.query(Message)
         .filter_by(conversation_id=conversation_id)
@@ -93,7 +138,6 @@ async def get_conversation_messages(conversation_id: str, db: Session = Depends(
 
 @router.post("/feedback")
 async def submit_feedback(request: FeedbackRequest, db: Session = Depends(get_db)):
-    """Submit feedback for a conversation."""
     feedback = Feedback(
         message_id=request.message_id,
         conversation_id=request.conversation_id,
@@ -102,4 +146,23 @@ async def submit_feedback(request: FeedbackRequest, db: Session = Depends(get_db
     )
     db.add(feedback)
     db.commit()
+
+    if request.rating <= 2 and request.user_message:
+        existing = (
+            db.query(UncertainPrediction)
+            .filter(
+                UncertainPrediction.text == request.user_message,
+                UncertainPrediction.is_annotated == False,
+            )
+            .first()
+        )
+        if not existing:
+            uncertain = UncertainPrediction(
+                text=request.user_message,
+                predicted_intent=request.predicted_intent,
+                confidence=request.confidence or 0.0,
+            )
+            db.add(uncertain)
+            db.commit()
+
     return {"status": "success", "message": "Feedback recorded. Thank you!"}

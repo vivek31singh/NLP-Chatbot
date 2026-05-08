@@ -20,11 +20,22 @@ class ChatMessageResponse(BaseModel):
     timestamp: datetime
 
 
+class LogMessageRequest(BaseModel):
+    message: str
+    bot_response: str
+    session_id: Optional[str] = None
+    intent: Optional[str] = None
+    confidence: Optional[float] = None
+
+
 class FeedbackRequest(BaseModel):
     message_id: Optional[str] = None
     conversation_id: str
-    rating: int  # 1-5
+    rating: int
     comment: Optional[str] = None
+    user_message: Optional[str] = None
+    predicted_intent: Optional[str] = None
+    confidence: Optional[float] = None
 
 
 class ConversationResponse(BaseModel):
@@ -60,6 +71,24 @@ class IntentMetric(BaseModel):
     intent: str
     count: int
     avg_confidence: float
+
+
+class HandoffAcceptRequest(BaseModel):
+    agent_id: str
+
+
+class HandoffMessageRequest(BaseModel):
+    agent_id: str
+    message: str
+
+
+class HandoffCloseRequest(BaseModel):
+    agent_id: str
+
+
+class HandoffCreateRequest(BaseModel):
+    conversation_id: str
+    reason: Optional[str] = None
 
 
 class HealthResponse(BaseModel):

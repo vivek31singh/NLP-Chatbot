@@ -1,0 +1,8 @@
+FROM python:3.10-slim
+
+WORKDIR /app
+RUN pip install --no-cache-dir rasa[spacy] 2>/dev/null || true
+
+COPY actions/ /app/actions/
+EXPOSE 5055
+CMD ["rasa", "run", "actions"]

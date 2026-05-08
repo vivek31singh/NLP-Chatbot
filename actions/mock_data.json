@@ -1,0 +1,73 @@
+{
+  "orders": {
+    "ORD-12345": {
+      "status": "Shipped",
+      "estimated_days": 3,
+      "email": "john.doe@email.com",
+      "shipping_address": "123 Main St, New York, NY 10001",
+      "items": ["Wireless Headphones", "Phone Case"],
+      "tracking_number": "TRK-9876543210"
+    },
+    "ORD-67890": {
+      "status": "Delivered",
+      "estimated_days": 0,
+      "email": "jane.smith@email.com",
+      "shipping_address": "456 Oak Ave, Los Angeles, CA 90001",
+      "items": ["Mechanical Keyboard"],
+      "tracking_number": "TRK-1234567890"
+    },
+    "ORD-11111": {
+      "status": "Processing",
+      "estimated_days": 5,
+      "email": "bob.wilson@email.com",
+      "shipping_address": "789 Pine Rd, Chicago, IL 60601",
+      "items": ["Laptop Stand", "USB-C Hub"],
+      "tracking_number": null
+    },
+    "ORD-22222": {
+      "status": "In Transit",
+      "estimated_days": 2,
+      "email": "alice.jones@email.com",
+      "shipping_address": "321 Elm St, Houston, TX 77001",
+      "items": ["Smart Watch"],
+      "tracking_number": "TRK-5556667778"
+    },
+    "ORD-33333": {
+      "status": "Out for Delivery",
+      "estimated_days": 1,
+      "email": "charlie.brown@email.com",
+      "shipping_address": "654 Maple Dr, Phoenix, AZ 85001",
+      "items": ["Bluetooth Speaker", "Desk Lamp"],
+      "tracking_number": "TRK-1122334455"
+    }
+  },
+  "default_order": {
+    "status": "Processing",
+    "estimated_days": 5,
+    "email": "customer@email.com",
+    "shipping_address": "Default Address",
+    "items": ["Item"],
+    "tracking_number": "TRK-0000000000"
+  },
+  "products": {
+    "wireless headphones": {
+      "price": "$79.99",
+      "rating": "4.5/5",
+      "stock": "In Stock",
+      "description": "Premium wireless headphones with noise cancellation, 30-hour battery life, and comfortable over-ear design."
+    },
+    "laptop stand": {
+      "price": "$39.99",
+      "rating": "4.7/5",
+      "stock": "In Stock",
+      "description": "Adjustable aluminum laptop stand with ergonomic design, compatible with all laptops up to 17 inches."
+    },
+    "mechanical keyboard": {
+      "price": "$129.99",
+      "rating": "4.8/5",
+      "stock": "Low Stock",
+      "description": "RGB mechanical keyboard with Cherry MX switches, hot-swappable keys, and USB-C connectivity."
+    }
+  },
+  "max_fallback_count": 2
+}

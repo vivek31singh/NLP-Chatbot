@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { Send, ThumbsUp, ThumbsDown, RotateCcw, Bot, User } from 'lucide-react'
 import RasaService, { RasaBotMessage } from '../services/rasaSocket'
+import { chatApi } from '../services/api'
 
 interface Message {
   id: string
@@ -8,10 +9,22 @@ interface Message {
   content: string
   timestamp: string
   buttons?: Array<{ title: string; payload: string }>
+  intent?: string
+  confidence?: number
 }
 
 export default function ChatPage() {
-  const [messages, setMessages] = useState<Message[]>([])
+  const STORAGE_KEY = 'chatbot_session_id'
+  const MESSAGES_KEY = 'chatbot_messages'
+
+  const [messages, setMessages] = useState<Message[]>(() => {
+    try {
+      const saved = localStorage.getItem(MESSAGES_KEY)
+      return saved ? JSON.parse(saved) : []
+    } catch {
+      return []
+    }
+  })
   const [input, setInput] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [feedbackGiven, setFeedbackGiven] = useState<Record<string, 'up' | 'down'>>({})
@@ -28,11 +41,36 @@ export default function ChatPage() {
   }, [messages])
 
   useEffect(() => {
-    serviceRef.current = new RasaService()
+    const savedSessionId = localStorage.getItem(STORAGE_KEY)
+    serviceRef.current = new RasaService(savedSessionId || undefined)
     return () => {
       serviceRef.current = null
     }
   }, [])
+
+  useEffect(() => {
+    localStorage.setItem(MESSAGES_KEY, JSON.stringify(messages))
+  }, [messages])
+
+  const logToBackend = async (
+    userText: string,
+    botText: string,
+    intent?: string,
+    confidence?: number,
+    sessionId?: string
+  ) => {
+    try {
+      await chatApi.logMessage({
+        message: userText,
+        bot_response: botText,
+        session_id: sessionId,
+        intent,
+        confidence,
+      })
+    } catch {
+      // silent fail - logging is non-critical
+    }
+  }
 
   const handleSend = async () => {
     const text = input.trim()
@@ -63,6 +101,10 @@ export default function ChatPage() {
           }
           setMessages((prev) => [...prev, botMessage])
         })
+
+        const lastBotText = botMessages[botMessages.length - 1].text
+        logToBackend(text, lastBotText, undefined, undefined, serviceRef.current?.getSessionId())
+        localStorage.setItem(STORAGE_KEY, serviceRef.current?.getSessionId() || '')
       } else {
         const noReply: Message = {
           id: crypto.randomUUID(),
@@ -113,6 +155,10 @@ export default function ChatPage() {
           }
           setMessages((prev) => [...prev, botMessage])
         })
+
+        const lastBotText = botMessages[botMessages.length - 1].text
+        logToBackend(payload, lastBotText, undefined, undefined, serviceRef.current?.getSessionId())
+        localStorage.setItem(STORAGE_KEY, serviceRef.current?.getSessionId() || '')
       }
     } catch (error) {
       console.error('Error sending quick reply to Rasa:', error)
@@ -131,11 +177,28 @@ export default function ChatPage() {
   const handleNewConversation = () => {
     setMessages([])
     setFeedbackGiven({})
+    localStorage.removeItem(MESSAGES_KEY)
+    localStorage.removeItem(STORAGE_KEY)
     serviceRef.current = new RasaService()
   }
 
-  const handleFeedback = (_messageId: string, rating: 'up' | 'down') => {
-    setFeedbackGiven((prev) => ({ ...prev, [_messageId]: rating }))
+  const handleFeedback = async (messageId: string, rating: 'up' | 'down') => {
+    setFeedbackGiven((prev) => ({ ...prev, [messageId]: rating }))
+
+    const botMsgIndex = messages.findIndex((m) => m.id === messageId)
+    const userMsg = botMsgIndex > 0 ? messages[botMsgIndex - 1] : null
+
+    try {
+      await chatApi.submitFeedback({
+        conversation_id: 'direct-chat',
+        rating: rating === 'up' ? 5 : 1,
+        user_message: userMsg?.content,
+        predicted_intent: undefined,
+        confidence: undefined,
+      })
+    } catch {
+      // silent fail
+    }
   }
 
   return (

@@ -2,71 +2,41 @@ from typing import Any, Text, Dict, List
 from rasa_sdk import Action, Tracker
 from rasa_sdk.executor import CollectingDispatcher
 from rasa_sdk.events import SlotSet, ConversationPaused
+import json
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
-ORDERS_DB = {
-    "ORD-12345": {
-        "status": "Shipped",
-        "estimated_days": 3,
-        "email": "john.doe@email.com",
-        "shipping_address": "123 Main St, New York, NY 10001",
-        "items": ["Wireless Headphones", "Phone Case"],
-        "tracking_number": "TRK-9876543210",
-    },
-    "ORD-67890": {
-        "status": "Delivered",
-        "estimated_days": 0,
-        "email": "jane.smith@email.com",
-        "shipping_address": "456 Oak Ave, Los Angeles, CA 90001",
-        "items": ["Mechanical Keyboard"],
-        "tracking_number": "TRK-1234567890",
-    },
-    "ORD-11111": {
-        "status": "Processing",
-        "estimated_days": 5,
-        "email": "bob.wilson@email.com",
-        "shipping_address": "789 Pine Rd, Chicago, IL 60601",
-        "items": ["Laptop Stand", "USB-C Hub"],
-        "tracking_number": None,
-    },
-    "ORD-22222": {
-        "status": "In Transit",
-        "estimated_days": 2,
-        "email": "alice.jones@email.com",
-        "shipping_address": "321 Elm St, Houston, TX 77001",
-        "items": ["Smart Watch"],
-        "tracking_number": "TRK-5556667778",
-    },
-    "ORD-33333": {
-        "status": "Out for Delivery",
-        "estimated_days": 1,
-        "email": "charlie.brown@email.com",
-        "shipping_address": "654 Maple Dr, Phoenix, AZ 85001",
-        "items": ["Bluetooth Speaker", "Desk Lamp"],
-        "tracking_number": "TRK-1122334455",
-    },
-}
 
-DEFAULT_ORDER = {
-    "status": "Processing",
-    "estimated_days": 5,
-    "email": "customer@email.com",
-    "shipping_address": "Default Address",
-    "items": ["Item"],
-    "tracking_number": "TRK-0000000000",
-}
+def _load_mock_data() -> Dict[str, Any]:
+    mock_data_path = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)), "mock_data.json"
+    )
+    try:
+        with open(mock_data_path, "r") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        logger.warning("mock_data.json not found or invalid, using empty fallback data")
+        return {}
+
+
+_mock_data = _load_mock_data()
+
+ORDERS_DB = _mock_data.get("orders", {})
+DEFAULT_ORDER = _mock_data.get("default_order", {})
+PRODUCTS = _mock_data.get("products", {})
+MAX_FALLBACK_COUNT = _mock_data.get("max_fallback_count", 2)
 
 
 def get_order(order_id: str) -> Dict[str, Any]:
     return ORDERS_DB.get(order_id, DEFAULT_ORDER)
 
 
-class ActionCheckOrderStatus(Action):
+class ActionHandleFallback(Action):
 
     def name(self) -> Text:
-        return "action_check_order_status"
+        return "action_handle_fallback"
 
     def run(
         self,
@@ -74,24 +44,36 @@ class ActionCheckOrderStatus(Action):
         tracker: Tracker,
         domain: Dict[Text, Any],
     ) -> List[Dict[Text, Any]]:
-        order_id = tracker.get_slot("order_id")
+        fallback_count = tracker.get_slot("fallback_count") or 0
+        new_count = float(fallback_count) + 1.0
 
-        if not order_id:
-            dispatcher.utter_message(text="I couldn't find an order ID. Could you please provide it?")
-            return []
+        if new_count >= MAX_FALLBACK_COUNT:
+            dispatcher.utter_message(
+                text="I'm sorry, I'm having difficulty understanding your request. "
+                     "Let me connect you with a human agent who can better assist you."
+            )
+            logger.info(
+                f"Fallback threshold reached ({new_count}). "
+                f"Escalating to human agent."
+            )
+            return [
+                SlotSet("fallback_count", 0.0),
+                ConversationPaused(),
+            ]
 
-        order = get_order(order_id)
-
-        response = (
-            f"Here's the status for your order **{order_id}**:\n\n"
-            f"📦 Status: **{order['status']}**\n"
-            f"📅 Estimated delivery: {order['estimated_days']} business day(s)\n"
-            f"📍 Tracking: Your package is on its way!\n\n"
-            f"Is there anything else you'd like to know about this order?"
+        logger.info(f"Fallback count: {new_count}/{MAX_FALLBACK_COUNT}")
+        dispatcher.utter_message(
+            text="I'm having trouble understanding. Could you rephrase that "
+                 "or choose from the options below?",
+            buttons=[
+                {"title": "Track Order", "payload": "/track_order"},
+                {"title": "Return/Refund", "payload": "/return_refund"},
+                {"title": "Billing Question", "payload": "/billing_question"},
+                {"title": "Talk to Agent", "payload": "/handoff_to_human"},
+            ],
         )
-        dispatcher.utter_message(text=response)
 
-        return [SlotSet("order_id", order_id)]
+        return [SlotSet("fallback_count", new_count)]
 
 
 class ActionGetProductInfo(Action):
@@ -113,30 +95,9 @@ class ActionGetProductInfo(Action):
             )
             return []
 
-        products = {
-            "wireless headphones": {
-                "price": "$79.99",
-                "rating": "4.5/5",
-                "stock": "In Stock",
-                "description": "Premium wireless headphones with noise cancellation, 30-hour battery life, and comfortable over-ear design.",
-            },
-            "laptop stand": {
-                "price": "$39.99",
-                "rating": "4.7/5",
-                "stock": "In Stock",
-                "description": "Adjustable aluminum laptop stand with ergonomic design, compatible with all laptops up to 17 inches.",
-            },
-            "mechanical keyboard": {
-                "price": "$129.99",
-                "rating": "4.8/5",
-                "stock": "Low Stock",
-                "description": "RGB mechanical keyboard with Cherry MX switches, hot-swappable keys, and USB-C connectivity.",
-            },
-        }
-
         product_key = product_name.lower()
-        if product_key in products:
-            p = products[product_key]
+        if product_key in PRODUCTS:
+            p = PRODUCTS[product_key]
             response = (
                 f"Here's the information about **{product_name}**:\n\n"
                 f"💰 Price: {p['price']}\n"
@@ -155,7 +116,7 @@ class ActionGetProductInfo(Action):
             )
 
         dispatcher.utter_message(text=response)
-        return [SlotSet("product_name", product_name)]
+        return [SlotSet("product_name", product_name), SlotSet("fallback_count", 0.0)]
 
 
 class ActionEscalateToAgent(Action):
@@ -196,7 +157,7 @@ class ActionEscalateToAgent(Action):
             f"- Issue: {complaint_type or 'General inquiry'}"
         )
 
-        return [ConversationPaused()]
+        return [ConversationPaused(), SlotSet("fallback_count", 0.0)]
 
 
 class ActionSubmitOrderStatusForm(Action):
@@ -232,7 +193,7 @@ class ActionSubmitOrderStatusForm(Action):
         )
         dispatcher.utter_message(text=response)
 
-        return [SlotSet("order_id", order_id)]
+        return [SlotSet("order_id", order_id), SlotSet("fallback_count", 0.0)]
 
 
 class ActionSubmitReturnRefundForm(Action):
@@ -247,24 +208,23 @@ class ActionSubmitReturnRefundForm(Action):
         domain: Dict[Text, Any],
     ) -> List[Dict[Text, Any]]:
         order_id = tracker.get_slot("order_id")
-        email = tracker.get_slot("email")
+        complaint_type = tracker.get_slot("complaint_type")
 
-        if order_id and email:
+        if order_id and complaint_type:
             dispatcher.utter_message(
                 text=(
-                    f"Here's our return and refund process:\n\n"
-                    f"1. Your return request has been initiated for order **{order_id}**.\n"
-                    f"2. You'll receive a return shipping label at **{email}**.\n"
-                    f"3. Once we receive the item, we'll process your refund within 5-7 business days.\n\n"
+                    f"Your return request has been initiated for order **{order_id}** regarding: **{complaint_type}**.\n\n"
+                    f"You'll receive a return shipping label via email shortly.\n"
+                    f"Once we receive the item, we'll process your refund within 5-7 business days.\n\n"
                     f"Is there anything else I can help with?"
                 )
             )
         else:
             dispatcher.utter_message(
-                text="I'm missing some information. Could you please provide your order ID and email address?"
+                text="I'm missing some information. Could you please provide your order ID and complaint type?"
             )
 
-        return []
+        return [SlotSet("fallback_count", 0.0)]
 
 
 class ActionGetOrderEmail(Action):
@@ -294,7 +254,7 @@ class ActionGetOrderEmail(Action):
         )
         dispatcher.utter_message(text=response)
 
-        return []
+        return [SlotSet("fallback_count", 0.0)]
 
 
 class ActionGetOrderDetails(Action):
@@ -334,4 +294,152 @@ class ActionGetOrderDetails(Action):
         )
         dispatcher.utter_message(text=response)
 
-        return []
+        return [SlotSet("fallback_count", 0.0)]
+
+
+class ActionHandleBillingCharge(Action):
+
+    def name(self) -> Text:
+        return "action_handle_billing_charge"
+
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> List[Dict[Text, Any]]:
+        order_id = tracker.get_slot("order_id")
+
+        if order_id:
+            order = get_order(order_id)
+            items = ", ".join(order["items"])
+            response = (
+                f"Here are the charge details for order **{order_id}**:\n\n"
+                f"📦 Items: {items}\n"
+                f"📧 Email: {order['email']}\n"
+                f"📍 Shipping to: {order['shipping_address']}\n\n"
+                f"If you see a charge you don't recognize, it may be:\n"
+                f"- A pending authorization that will reverse in 1-3 days\n"
+                f"- A split charge for multiple items shipped separately\n"
+                f"- Taxes or shipping fees applied at checkout\n\n"
+                f"Would you like me to escalate this to a billing specialist?"
+            )
+            dispatcher.utter_message(text=response)
+        else:
+            dispatcher.utter_message(
+                text="I'd be happy to look into a charge for you. "
+                     "Could you please provide your order ID so I can check the details?"
+            )
+
+        return [SlotSet("fallback_count", 0.0)]
+
+
+class ActionHandleBillingInvoice(Action):
+
+    def name(self) -> Text:
+        return "action_handle_billing_invoice"
+
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> List[Dict[Text, Any]]:
+        order_id = tracker.get_slot("order_id")
+
+        if order_id:
+            order = get_order(order_id)
+            items = ", ".join(order["items"])
+            response = (
+                f"Here's your invoice summary for order **{order_id}**:\n\n"
+                f"📦 Items: {items}\n"
+                f"📧 Billed to: {order['email']}\n"
+                f"📍 Ship to: {order['shipping_address']}\n"
+                f"📦 Status: {order['status']}\n\n"
+                f"A detailed invoice has been sent to **{order['email']}**. "
+                f"You can also download it from your account under 'Order History'.\n\n"
+                f"Is there anything else you need?"
+            )
+            dispatcher.utter_message(text=response)
+        else:
+            dispatcher.utter_message(
+                text="I can help you get a copy of your invoice. "
+                     "Could you please provide your order ID?"
+            )
+
+        return [SlotSet("fallback_count", 0.0)]
+
+
+class ActionHandleBillingPayment(Action):
+
+    def name(self) -> Text:
+        return "action_handle_billing_payment"
+
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> List[Dict[Text, Any]]:
+        response = (
+            "We accept the following payment methods:\n\n"
+            "- **Credit Card** (Visa, Mastercard, Amex)\n"
+            "- **Debit Card**\n"
+            "- **UPI**\n"
+            "- **Bank Transfer**\n"
+            "- **Net Banking**\n\n"
+            "You can update your payment method from your account settings. "
+            "If you're having trouble with a payment, I can connect you with a billing specialist."
+        )
+        dispatcher.utter_message(
+            text=response,
+            buttons=[
+                {"title": "Talk to Agent", "payload": "/handoff_to_human"},
+            ],
+        )
+
+        return [SlotSet("fallback_count", 0.0)]
+
+
+class ActionFileComplaint(Action):
+
+    def name(self) -> Text:
+        return "action_file_complaint"
+
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> List[Dict[Text, Any]]:
+        order_id = tracker.get_slot("order_id")
+        complaint_type = tracker.get_slot("complaint_type")
+
+        logger.info(f"Complaint filed: order={order_id}, type={complaint_type}")
+        dispatcher.utter_message(
+            text=f"Your complaint has been filed for order **{order_id}** regarding: **{complaint_type}**.\n\n"
+                 f"Our support team will review it and get back to you within 24 hours. "
+                 f"Thank you for your patience."
+        )
+
+        return [SlotSet("fallback_count", 0.0)]
+
+
+class ActionSubmitFeedback(Action):
+
+    def name(self) -> Text:
+        return "action_submit_feedback"
+
+    def run(
+        self,
+        dispatcher: CollectingDispatcher,
+        tracker: Tracker,
+        domain: Dict[Text, Any],
+    ) -> List[Dict[Text, Any]]:
+        user_message = tracker.latest_message.get("text", "")
+        logger.info(f"Feedback received: {user_message}")
+        dispatcher.utter_message(
+            text="Thank you for your feedback! It helps us improve our service."
+        )
+
+        return [SlotSet("fallback_count", 0.0)]

@@ -18,6 +18,18 @@ nlu:
     - yo
     - hiya
     - hey i need help
+    - hi can you help me
+    - hello i have a question
+    - hey good morning
+    - hi there i need assistance
+    - greetings of the day
+    - hey is anyone there
+    - hello? are you available
+    - hi i have an issue
+    - good morning can you help
+    - sup
+    - heya
+    - hello hello
 
 - intent: goodbye
   examples: |
@@ -33,6 +45,24 @@ nlu:
     - i'm done
     - no more questions
     - that would be all
+    - thanks for the help bye
+    - i'm good now bye
+    - that's everything thanks
+    - ok i'm done thanks
+    - nope that's it bye
+    - alright bye
+    - thanks that's all i needed
+    - perfect goodbye
+    - i have no more questions
+    - all set thanks goodbye
+    - that's all
+    - i'm good
+    - nothing else
+    - that's it
+    - all done
+    - that'll be all
+    - i think that's everything
+    - i got what i needed
 
 - intent: affirm
   examples: |
@@ -57,6 +87,36 @@ nlu:
     - yeah that one
     - yes please
     - that's the one
+    - yep correct
+    - yeah sure
+    - absolutely yes
+    - that is right
+    - mhmm yes
+    - yup
+    - correcto
+    - yeah that's it
+    - yes exactly
+    - okay sure
+    - ok yes
+    - alright
+    - okay then
+    - sure thing
+    - yeah ok
+    - ok great
+    - okay cool
+    - alright sure
+    - yes go ahead
+    - ok go ahead
+    - sure go ahead
+    - please go ahead
+    - yeah please
+    - ok that works
+    - sounds great
+    - perfect
+    - great
+    - fine
+    - that works
+    - that's fine
 
 - intent: deny
   examples: |
@@ -72,6 +132,23 @@ nlu:
     - no that's wrong
     - wrong
     - absolutely not
+    - no that isn't it
+    - not at all
+    - nope that's not it
+    - nah that's wrong
+    - that is incorrect
+    - not the right one
+    - no i don't think that's right
+    - that doesn't look right
+    - negative
+    - no way
+    - not quite
+    - that's not it
+    - nope wrong
+    - nah not that
+    - not correct
+    - that's wrong
+    - no i don't want that
 
 - intent: bot_challenge
   examples: |
@@ -86,6 +163,15 @@ nlu:
     - who am I speaking with?
     - are you an AI?
     - is there a real person there?
+    - are you a real human or a bot
+    - is this an ai assistant
+    - are you automated
+    - can a human talk to me instead
+    - do you have real people working there
+    - are you a virtual assistant
+    - is anyone human there
+    - who are you
+    - what are you
 
 - intent: check_order_status
   examples: |
@@ -105,6 +191,27 @@ nlu:
     - delivery status of [ORD-56565](order_id)
     - can you look up order [ORD-78787](order_id)?
     - what's happening with my order [ORD-90909](order_id)?
+    - can u tell me the status of order [ORD-12345](order_id)
+    - pls check order [ORD-67890](order_id) status
+    - i ordered something and my number is [ORD-11111](order_id), any updates
+    - order [ORD-22222](order_id) - is it shipped yet
+    - wheres order [ORD-33333](order_id)
+    - update me on [ORD-44444](order_id) plz
+    - what's the progress on my order [ORD-55555](order_id)
+    - did my order [ORD-66666](order_id) ship
+    - can u check on [ORD-77777](order_id) for me
+    - i need to know if [ORD-88888](order_id) has been delivered
+    - status check for [ORD-99999](order_id)
+    - my purchase [ORD-12121](order_id) status
+    - has [ORD-34343](order_id) been dispatched
+    - about my order status
+    - asking about order status
+    - about an order
+    - regarding my order
+    - about a recent order
+    - i want to check on my order
+    - about order delivery
+    - about my shipment status
 
 - intent: track_order
   examples: |
@@ -123,6 +230,24 @@ nlu:
     - when will I receive my order?
     - delivery estimate for my order
     - shipping status
+    - i want to track a shipment
+    - where's my delivery at
+    - can u track my parcel
+    - my stuff hasn't arrived yet
+    - wheres my package
+    - i need a tracking update
+    - how long until my order arrives
+    - when am i getting my order
+    - can i get tracking info
+    - i want shipping updates
+    - my order hasn't come yet
+    - about tracking my order
+    - asking about tracking
+    - regarding my delivery
+    - about my package
+    - about shipment tracking
+    - about where my order is
+    - i want tracking info about my order
 
 - intent: return_refund
   examples: |
@@ -143,6 +268,26 @@ nlu:
     - i need to return something
     - exchange my order [ORD-22222](order_id)
     - return process for my purchase
+    - i want to send this back
+    - how do returns work
+    - can i get my money back for this
+    - i'd like to initiate a return
+    - this product is not what i expected, i want a refund
+    - i need a refund for my purchase
+    - how can i return an order
+    - return my item please
+    - i changed my mind, can i return it
+    - what is the refund process
+    - i want a full refund
+    - how do i send this back
+    - about returning an item
+    - asking about a return
+    - about refunds
+    - regarding a return
+    - i want to return something
+    - about the return policy
+    - about getting my money back
+    - asking about refund status
 
 - intent: product_inquiry
   examples: |
@@ -161,25 +306,121 @@ nlu:
     - is [tablet](product_name) available?
     - i need info about [power bank](product_name)
     - what products do you recommend?
+    - i'm interested in [wireless headphones](product_name)
+    - can you tell me about [laptop stand](product_name)
+    - give me details on [mechanical keyboard](product_name)
+    - what do you know about [smart watch](product_name)
+    - looking for [usb-c hub](product_name) info
+    - how much is [bluetooth speaker](product_name)
+    - i want details about [monitor arm](product_name)
+    - tell me the specs for [webcam](product_name)
+    - what can you tell me about [wireless mouse](product_name)
+    - i want to know more about [phone case](product_name)
+    - is [headphones](product_name) any good
+    - about a product
+    - asking about a product
+    - regarding a product
+    - about products you sell
+    - about an item
+    - i'm asking about a product
+    - about product availability
+    - about product details
 
 - intent: billing_question
   examples: |
     - i have a billing question
+    - billing issue with my account
+    - billing problem with my purchase
+    - about billing
+    - asking about billing
+    - i have a question about my bill
+    - help with billing
+    - billing help
+    - i need billing support
+    - question about my bill
+    - i need billing help
+    - something wrong with my bill
+    - billing issue
+    - problem with my account
+    - i have a question about billing
+    - need help with billing
+    - my bill looks wrong
+    - billing concern
+    - can someone help with my billing
+
+- intent: billing_charge
+  examples: |
     - why was i charged twice?
+    - i was overcharged
+    - i see an unexpected charge
+    - there's a charge i don't recognize
+    - my card was charged but i didn't get my order
+    - why is the amount different from what i expected
+    - about a specific charge
+    - asking about a charge
+    - i want to know about a charge on my card
+    - there's a weird charge
+    - what is this charge for
+    - i have a question about a charge
+    - regarding a charge on my account
+    - about a transaction
+    - i'm asking about a charge
+    - about a refund on my card
+    - about the amount i was charged
+    - i have a charge i need to discuss
+    - about my recent charge
+    - specific charge
+    - about a charge
+    - i'm going with specific charge
+    - asking about a specific charge
+    - there is a charge i don't understand
+    - what's this charge
+    - unknown charge on my statement
+    - charge on my [debit card](payment_method) looks wrong
+    - i was charged the wrong amount
+    - the charge amount is wrong
+
+- intent: billing_invoice
+  examples: |
     - i need help with my invoice
+    - invoice for order [ORD-12345](order_id)
+    - how do i get a receipt
+    - i need an invoice
+    - about an invoice
+    - i need a copy of my invoice
+    - can you send me the invoice
+    - where can i find my invoice
+    - invoice
+    - get my invoice
+    - i want my receipt
+    - send me a receipt
+    - where is my invoice
+    - about my invoice
+    - regarding my invoice
+    - i need a billing statement
+
+- intent: billing_payment_method
+  examples: |
     - payment failed on my order
     - can i change my payment method to [credit card](payment_method)?
-    - billing issue with my account
-    - i was overcharged
-    - refund hasn't appeared on my [credit card](payment_method)
     - payment methods accepted
     - can i pay with [upi](payment_method)?
-    - invoice for order [ORD-12345](order_id)
     - my payment was declined
     - how do i update my billing info?
-    - charge on my [debit card](payment_method) looks wrong
-    - when will i get my refund?
     - can i split payment between [credit card](payment_method) and [bank transfer](payment_method)?
+    - payment issue
+    - my transaction failed
+    - can i change how i pay
+    - about a payment
+    - regarding my payment
+    - payment method
+    - about payment methods
+    - what payment methods do you accept
+    - how can i pay
+    - my payment didn't go through
+    - payment declined
+    - update my payment info
+    - change payment method
 
 - intent: complaint
   examples: |
@@ -199,6 +440,22 @@ nlu:
     - i want to speak to a manager about my complaint
     - this is really bad customer service
     - i'm very disappointed
+    - i'm not happy with this purchase
+    - the product is broken
+    - i received a defective item - [damaged_item](complaint_type)
+    - this is not what i ordered - [wrong_item](complaint_type)
+    - where is my order it's been so long - [late_delivery](complaint_type)
+    - the build quality is poor - [poor_quality](complaint_type)
+    - i'm angry about this
+    - this is a terrible experience
+    - about a complaint
+    - asking about a complaint
+    - regarding a complaint
+    - about an issue with my order
+    - about a problem with my purchase
+    - i have an issue
+    - about a damaged product
+    - about a wrong item received
 
 - intent: handoff_to_human
   examples: |
@@ -217,6 +474,15 @@ nlu:
     - is there a human available?
     - put me through to an agent
     - i want to talk to your manager
+    - i need a real person to help me
+    - can you get me a human
+    - transfer me to a person
+    - i want human support
+    - let me speak to a human being
+    - get me someone who can actually help
+    - i want to talk to a live agent
+    - connect me with customer support
+    - i need to speak with someone real
 
 - intent: out_of_scope
   examples: |
@@ -232,6 +498,62 @@ nlu:
     - set a timer for 5 minutes
     - translate this to spanish
     - what movies are playing?
+    - how do i cook pasta?
+    - what's the meaning of life?
+    - tell me a fun fact
+    - what's 2+2?
+    - who is the president?
+    - how old is the earth?
+    - can you write me a poem?
+    - what's the best programming language?
+    - how do i lose weight?
+    - what should i wear today?
+    - can you book me a flight?
+    - how do i learn guitar?
+    - what's the recipe for chocolate cake?
+    - tell me about quantum physics
+    - how do i fix my car?
+    - what are the lottery numbers?
+    - can you predict the future?
+    - what's happening in the world?
+    - how do i invest in crypto?
+    - what's the best phone to buy?
+    - how do i start a business?
+    - can you do my homework?
+    - what's the score of the match?
+    - how do i get a drivers license?
+    - what's the population of india?
+    - can you hack something for me?
+    - how do i build a website?
+    - what's trending on social media?
+    - how do i train my dog?
+    - what's the best pizza place near me?
+    - can you send an email for me?
+    - how do i meditate?
+    - what's the latest iphone model?
+    - tell me about space exploration
+    - how do i get a job?
+    - what's the meaning of my dream?
+    - can you help me with my math homework?
+    - what's the exchange rate for dollars to euros?
+    - how do i learn a new language?
+    - what's the best way to travel to europe?
+    - can you recommend a good book?
+    - how do i fix a leaky faucet?
+    - what's the best workout routine?
+    - tell me about ancient history
+    - can you help me write a resume?
+    - what's the best diet plan?
+    - how do i save money?
+    - what's the latest technology news?
+    - can you help me plan a vacation?
+    - how do i pass my exam?
+    - what's the best way to learn coding?
+    - tell me a bedtime story
+    - can you help me with my taxes?
+    - what's the best movie on netflix?
+    - how do i start a podcast?
+    - what's the fastest car in the world?
 
 - intent: ask_order_email
   examples: |
@@ -246,6 +568,11 @@ nlu:
     - what's the account email for this order
     - show me the email for this order
     - what email address is on file for this order
+    - which email did i order with
+    - can u tell me what email i used
+    - what email is my order under
+    - email used for my purchase
+    - what's the contact email on my order
 
 - intent: ask_order_details
   examples: |
@@ -259,6 +586,11 @@ nlu:
     - tell me everything about this order
     - order summary please
     - what's included in my order
+    - i want to see my complete order
+    - show me my order breakdown
+    - what did i order exactly
+    - give me all the info on my order
+    - can i get a detailed view of my order
 
 - intent: provide_email
   examples: |
@@ -272,3 +604,81 @@ nlu:
     - it's [hello@world.com](email)
     - the email is [myemail@test.com](email)
     - [user123@mail.com](email)
+    - my email address is [john.doe@email.com](email)
+    - here's my email [jane@test.com](email)
+    - you can email me at [support@example.com](email)
+    - [info@company.net](email)
+    - my mail is [admin@domain.org](email)
+
+- intent: ask_capabilities
+  examples: |
+    - what can you do?
+    - what else can you do?
+    - what are you able to help with?
+    - what services do you provide?
+    - what things can you help me with?
+    - what else actions can you perform
+    - what are your capabilities?
+    - what do you do?
+    - what kind of questions can you answer?
+    - what can you help me with?
+    - what else can i do here?
+    - what are the things you can do?
+    - tell me what you can do
+    - what features do you have?
+    - what options are available?
+    - what kind of support do you offer?
+    - how can you assist me?
+    - what are you capable of?
+    - what else can i ask you about?
+    - what topics can you help with?
+    - what can i ask you?
+    - what do you know about?
+    - what help can you give me?
+    - what are all the things you can do?
+
+- intent: small_talk
+  examples: |
+    - how are you doing?
+    - how's your day going?
+    - you're doing a great job
+    - thanks for your help
+    - you're awesome
+    - nice to meet you
+    - have a good day
+    - you're very helpful
+    - i appreciate your assistance
+    - good job
+    - thank you so much
+    - you're smart
+    - i like talking to you
+    - you're the best bot
+    - well done
+    - keep up the good work
+    - you made my day
+    - thanks you're really helpful
+    - you're quite impressive
+    - i enjoy chatting with you
+
+- intent: frustrated
+  examples: |
+    - this is so frustrating
+    - i'm getting really annoyed
+    - this is taking too long
+    - i've been waiting forever
+    - nothing is working
+    - i'm about to lose my patience
+    - this is ridiculous
+    - i can't believe this
+    - why is this so difficult
+    - i'm so done with this
+    - this is a waste of my time
+    - i'm very upset right now
+    - you're not helping at all
+    - i keep going in circles
+    - this is infuriating
+    - i've had enough
+    - this is absolutely unacceptable
+    - i'm losing my patience
+    - why can't you just help me
+    - i'm really angry

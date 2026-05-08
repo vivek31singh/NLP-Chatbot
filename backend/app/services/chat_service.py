@@ -77,14 +77,23 @@ async def process_message(
     db.refresh(bot_message)
 
     # Check for uncertain prediction (active learning)
-    if confidence is not None and 0.3 <= confidence <= 0.6:
-        uncertain = UncertainPrediction(
-            text=message,
-            predicted_intent=intent_info.get("name"),
-            confidence=confidence,
+    if confidence is not None and confidence < 0.65:
+        existing = (
+            db.query(UncertainPrediction)
+            .filter(
+                UncertainPrediction.text == message,
+                UncertainPrediction.is_annotated == False,
+            )
+            .first()
         )
-        db.add(uncertain)
-        db.commit()
+        if not existing:
+            uncertain = UncertainPrediction(
+                text=message,
+                predicted_intent=intent_info.get("name"),
+                confidence=confidence,
+            )
+            db.add(uncertain)
+            db.commit()
 
     return ChatMessageResponse(
         conversation_id=conversation_id,

@@ -89,12 +89,33 @@ rules:
   - intent: billing_question
   - action: utter_billing_info
 
-- rule: Acknowledge complaint
+- rule: Handle billing charge
+  condition:
+  - active_loop: null
+  steps:
+  - intent: billing_charge
+  - action: action_handle_billing_charge
+
+- rule: Handle billing invoice
+  condition:
+  - active_loop: null
+  steps:
+  - intent: billing_invoice
+  - action: action_handle_billing_invoice
+
+- rule: Handle billing payment method
+  condition:
+  - active_loop: null
+  steps:
+  - intent: billing_payment_method
+  - action: action_handle_billing_payment
+
+- rule: File complaint
   condition:
   - active_loop: null
   steps:
   - intent: complaint
-  - action: utter_complaint_acknowledge
+  - action: action_file_complaint
 
 - rule: Hand off to human agent
   condition:
@@ -103,12 +124,12 @@ rules:
   - intent: handoff_to_human
   - action: action_escalate_to_agent
 
-- rule: Ask user to rephrase on fallback
+- rule: Handle fallback with counter
   condition:
   - active_loop: null
   steps:
   - intent: nlu_fallback
-  - action: utter_please_rephrase
+  - action: action_handle_fallback
 
 - rule: Handle out of scope questions
   condition:
@@ -116,3 +137,25 @@ rules:
   steps:
   - intent: out_of_scope
   - action: utter_default
+
+- rule: Handle small talk
+  condition:
+  - active_loop: null
+  steps:
+  - intent: small_talk
+  - action: utter_small_talk
+
+- rule: Handle ask capabilities
+  condition:
+  - active_loop: null
+  steps:
+  - intent: ask_capabilities
+  - action: utter_capabilities
+
+- rule: Handle frustrated user
+  condition:
+  - active_loop: null
+  steps:
+  - intent: frustrated
+  - action: utter_frustrated_acknowledge
+  - action: action_escalate_to_agent

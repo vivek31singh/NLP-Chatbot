@@ -1,9 +1,14 @@
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from app.config import settings
 from app.database import init_db
-from app.api import chat, analytics, admin
+from app.api import chat, analytics, admin, handoff, websocket
 from app.rasa_client import rasa_client
+
+PROJECT_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+RESULTS_DIR = os.path.join(PROJECT_DIR, "results")
 
 
 def create_app() -> FastAPI:
@@ -12,6 +17,10 @@ def create_app() -> FastAPI:
         description="NLP-Powered Customer Support Chatbot API",
         version="1.0.0",
     )
+
+    # Serve evaluation results (confusion matrix images, reports)
+    os.makedirs(RESULTS_DIR, exist_ok=True)
+    app.mount("/results", StaticFiles(directory=RESULTS_DIR), name="results")
 
     # CORS
     app.add_middleware(
@@ -26,6 +35,8 @@ def create_app() -> FastAPI:
     app.include_router(chat.router)
     app.include_router(analytics.router)
     app.include_router(admin.router)
+    app.include_router(handoff.router)
+    app.include_router(websocket.router)
 
     @app.on_event("startup")
     async def startup():

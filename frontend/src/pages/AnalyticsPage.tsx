@@ -5,8 +5,30 @@ import {
   LineElement, BarElement, ArcElement, Title, Tooltip as ChartTooltip, Legend as ChartLegend,
   Filler,
 } from 'chart.js'
+import axios from 'axios'
 import { analyticsApi, AnalyticsOverview, IntentMetric } from '../services/api'
-import { MessageSquare, TrendingUp, Target, ThumbsUp, AlertTriangle, Activity } from 'lucide-react'
+import { MessageSquare, TrendingUp, Target, ThumbsUp, AlertTriangle, Activity, Brain, CheckCircle, Loader2 } from 'lucide-react'
+
+interface F1Scores {
+  weighted: number | null
+  macro: number | null
+  micro: number | null
+  accuracy: number | null
+}
+
+interface IntentReportEntry {
+  precision: number | null
+  recall: number | null
+  f1_score: number | null
+  support: number | null
+}
+
+interface EvaluationResult {
+  f1_scores: F1Scores
+  confusion_matrix_url: string | null
+  intent_report: Record<string, IntentReportEntry>
+  note: string | null
+}
 
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement,
@@ -20,6 +42,9 @@ export default function AnalyticsPage() {
   const [intents, setIntents] = useState<IntentMetric[]>([])
   const [trend, setTrend] = useState<{ date: string; count: number }[]>([])
   const [loading, setLoading] = useState(true)
+  const [evalResult, setEvalResult] = useState<EvaluationResult | null>(null)
+  const [evalLoading, setEvalLoading] = useState(false)
+  const [evalError, setEvalError] = useState<string | null>(null)
 
   useEffect(() => {
     loadData()
@@ -41,6 +66,27 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const runEvaluation = async () => {
+    setEvalLoading(true)
+    setEvalError(null)
+    setEvalResult(null)
+    try {
+      const res = await axios.get<EvaluationResult>('/api/v1/analytics/evaluation')
+      setEvalResult(res.data)
+    } catch (error) {
+      console.error('Failed to run evaluation:', error)
+      setEvalError('Failed to run evaluation. Please try again.')
+    } finally {
+      setEvalLoading(false)
+    }
+  }
+
+  const getScoreColor = (score: number) => {
+    if (score > 0.85) return { bg: 'bg-green-100', text: 'text-green-700', dot: 'bg-green-500' }
+    if (score > 0.7) return { bg: 'bg-yellow-100', text: 'text-yellow-700', dot: 'bg-yellow-500' }
+    return { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-500' }
   }
 
   if (loading) {
@@ -284,6 +330,139 @@ export default function AnalyticsPage() {
             </table>
           </div>
         </div>
+      </div>
+
+      {/* NLU Evaluation Section */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <Brain className="w-6 h-6 text-purple-600" />
+            <h2 className="text-xl font-bold text-gray-900">NLU Evaluation</h2>
+          </div>
+          <button
+            onClick={runEvaluation}
+            disabled={evalLoading}
+            className="bg-blue-600 text-white rounded-lg px-4 py-2 text-sm font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+          >
+            {evalLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Running Evaluation...
+              </>
+            ) : (
+              'Run Evaluation'
+            )}
+          </button>
+        </div>
+
+        {evalError && (
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-red-500 shrink-0" />
+            <p className="text-sm text-red-700">{evalError}</p>
+          </div>
+        )}
+
+        {evalLoading && (
+          <div className="bg-white rounded-xl border border-gray-200 p-12 flex flex-col items-center justify-center gap-4">
+            <Loader2 className="w-10 h-10 text-blue-500 animate-spin" />
+            <p className="text-gray-500 text-sm">Running NLU evaluation... This may take a few minutes.</p>
+          </div>
+        )}
+
+        {evalResult && !evalLoading && (
+          <>
+            {evalResult.note && (
+              <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+                <AlertTriangle className="w-5 h-5 text-yellow-500 shrink-0" />
+                <p className="text-sm text-yellow-700">{evalResult.note}</p>
+              </div>
+            )}
+
+            {/* F1 Score Cards */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {([
+                { label: 'Weighted F1', value: evalResult.f1_scores.weighted },
+                { label: 'Macro F1', value: evalResult.f1_scores.macro },
+                { label: 'Micro F1', value: evalResult.f1_scores.micro },
+                { label: 'Accuracy', value: evalResult.f1_scores.accuracy },
+              ] as const).map((item) => {
+                const score = item.value ?? null
+                const colors = score != null ? getScoreColor(score) : { bg: 'bg-gray-100', text: 'text-gray-400', dot: 'bg-gray-300' }
+                return (
+                  <div key={item.label} className="bg-white rounded-xl border border-gray-200 p-4">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className={`w-3 h-3 rounded-full ${colors.dot}`} />
+                      <p className="text-xs text-gray-500 font-medium">{item.label}</p>
+                    </div>
+                    <p className={`text-2xl font-bold ${colors.text}`}>
+                      {score != null ? `${(score * 100).toFixed(1)}%` : 'N/A'}
+                    </p>
+                  </div>
+                )
+              })}
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Confusion Matrix */}
+              {evalResult.confusion_matrix_url && (
+                <div className="bg-white rounded-xl border border-gray-200 p-6">
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Confusion Matrix</h3>
+                  <div className="flex items-center justify-center">
+                    <img
+                      src={evalResult.confusion_matrix_url}
+                      alt="Confusion Matrix"
+                      className="max-w-full rounded-lg border border-gray-100"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Intent Report Table */}
+              <div className={`bg-white rounded-xl border border-gray-200 p-6 ${!evalResult.confusion_matrix_url ? 'lg:col-span-2' : ''}`}>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Per-Intent Report</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-gray-200">
+                        <th className="text-left py-2 px-3 font-medium text-gray-500">Intent</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-500">Precision</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-500">Recall</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-500">F1 Score</th>
+                        <th className="text-right py-2 px-3 font-medium text-gray-500">Support</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {Object.entries(evalResult.intent_report).map(([intent, metrics]) => {
+                        const f1 = metrics.f1_score ?? 0
+                        const colors = getScoreColor(f1)
+                        return (
+                          <tr key={intent} className="border-b border-gray-100">
+                            <td className="py-2 px-3 text-gray-900 font-medium">{intent}</td>
+                            <td className="py-2 px-3 text-right text-gray-600">{metrics.precision != null ? `${(metrics.precision * 100).toFixed(1)}%` : 'N/A'}</td>
+                            <td className="py-2 px-3 text-right text-gray-600">{metrics.recall != null ? `${(metrics.recall * 100).toFixed(1)}%` : 'N/A'}</td>
+                            <td className="py-2 px-3 text-right">
+                              <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${colors.bg} ${colors.text}`}>
+                                {metrics.f1_score != null ? `${(metrics.f1_score * 100).toFixed(1)}%` : 'N/A'}
+                              </span>
+                            </td>
+                            <td className="py-2 px-3 text-right text-gray-600">{metrics.support ?? 0}</td>
+                          </tr>
+                        )
+                      })}
+                      {Object.keys(evalResult.intent_report).length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="py-8 text-center text-gray-400">
+                            No intent report data available.
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   )

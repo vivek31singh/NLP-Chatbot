@@ -38,17 +38,17 @@ class RasaClient:
             logger.error("Cannot connect to Rasa server. Is it running on port 5005?")
             return {"bot_messages": [], "error": "Rasa server not reachable"}
 
-        # Wait for Rasa to process
+        # Wait for Rasa to process with retries
         import asyncio
-        await asyncio.sleep(1.0)
-
-        # Fetch bot responses
-        try:
-            bot_response = await self.get_response(safe_sender)
-            return {"bot_messages": bot_response}
-        except Exception as e:
-            logger.error(f"Rasa get_response error: {e}")
-            return {"bot_messages": [], "error": str(e)}
+        for attempt in range(10):
+            await asyncio.sleep(1.0)
+            try:
+                bot_response = await self.get_response(safe_sender)
+                if bot_response:
+                    return {"bot_messages": bot_response}
+            except Exception as e:
+                logger.warning(f"Poll attempt {attempt + 1} failed: {e}")
+        return {"bot_messages": []}
 
     async def get_response(self, sender_id: str) -> list:
         """Get the latest bot responses from Rasa."""
