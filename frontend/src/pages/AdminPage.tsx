@@ -9,7 +9,7 @@ export default function AdminPage() {
   const [annotating, setAnnotating] = useState<string | null>(null)
   const [trainingStatus, setTrainingStatus] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<'annotate' | 'training' | 'handoff' | 'train'>('annotate')
-  const [modelVersions, setModelVersions] = useState<Array<{version: string; status: string; created_at: string}>>([])
+  const [modelVersions, setModelVersions] = useState<Array<{version: string; status: string; intent_f1: number | null; entity_f1: number | null; created_at: string}>>([])
 
   const [intentsWithPhrases, setIntentsWithPhrases] = useState<IntentWithPhrases[]>([])
   const [expandedIntent, setExpandedIntent] = useState<string | null>(null)
@@ -525,6 +525,8 @@ export default function AdminPage() {
                     <tr className="border-b border-gray-200">
                       <th className="text-left py-2 px-3 font-medium text-gray-600">Version</th>
                       <th className="text-left py-2 px-3 font-medium text-gray-600">Status</th>
+                      <th className="text-right py-2 px-3 font-medium text-gray-600">Intent F1</th>
+                      <th className="text-right py-2 px-3 font-medium text-gray-600">Entity F1</th>
                       <th className="text-left py-2 px-3 font-medium text-gray-600">Date</th>
                     </tr>
                   </thead>
@@ -534,11 +536,17 @@ export default function AdminPage() {
                         <td className="py-2 px-3 font-mono text-gray-900">{mv.version}</td>
                         <td className="py-2 px-3">
                           <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${
-                            mv.status === 'success' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                            mv.status === 'success' || mv.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                           }`}>
-                            {mv.status === 'success' ? <CheckCircle className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
+                            {mv.status === 'success' || mv.status === 'active' ? <CheckCircle className="w-3 h-3" /> : <AlertCircle className="w-3 h-3" />}
                             {mv.status}
                           </span>
+                        </td>
+                        <td className="py-2 px-3 text-right text-gray-600">
+                          {mv.intent_f1 != null ? `${(mv.intent_f1 * 100).toFixed(1)}%` : <span className="text-gray-300">—</span>}
+                        </td>
+                        <td className="py-2 px-3 text-right text-gray-600">
+                          {mv.entity_f1 != null ? `${(mv.entity_f1 * 100).toFixed(1)}%` : <span className="text-gray-300">—</span>}
                         </td>
                         <td className="py-2 px-3 text-gray-500">{new Date(mv.created_at).toLocaleString()}</td>
                       </tr>

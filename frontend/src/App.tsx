@@ -2,7 +2,8 @@ import { BrowserRouter, Routes, Route, NavLink } from 'react-router-dom'
 import ChatPage from './pages/ChatPage'
 import AnalyticsPage from './pages/AnalyticsPage'
 import AdminPage from './pages/AdminPage'
-import { MessageSquare, BarChart3, Settings } from 'lucide-react'
+import AgentConsolePage from './pages/AgentConsolePage'
+import { MessageSquare, BarChart3, Settings, Headphones } from 'lucide-react'
 
 function App() {
   return (
@@ -45,6 +46,19 @@ function App() {
                   Analytics
                 </NavLink>
                 <NavLink
+                  to="/agent"
+                  className={({ isActive }) =>
+                    `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
+                        ? 'bg-green-50 text-green-700'
+                        : 'text-gray-600 hover:bg-gray-100'
+                    }`
+                  }
+                >
+                  <Headphones className="w-4 h-4" />
+                  Agent
+                </NavLink>
+                <NavLink
                   to="/admin"
                   className={({ isActive }) =>
                     `flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
@@ -67,6 +81,7 @@ function App() {
           <Route path="/" element={<ChatPage />} />
           <Route path="/analytics" element={<AnalyticsPage />} />
           <Route path="/admin" element={<AdminPage />} />
+          <Route path="/agent" element={<AgentConsolePage />} />
         </Routes>
       </div>
     </BrowserRouter>

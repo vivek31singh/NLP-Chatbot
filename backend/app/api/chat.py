@@ -114,6 +114,26 @@ async def list_conversations(db: Session = Depends(get_db)):
     return result
 
 
+@router.get("/conversations/{conversation_id}")
+async def get_conversation(conversation_id: str, db: Session = Depends(get_db)):
+    conversation = db.query(Conversation).filter_by(id=conversation_id).first()
+    if not conversation:
+        raise HTTPException(status_code=404, detail="Conversation not found")
+
+    msg_count = db.query(Message).filter_by(conversation_id=conversation_id).count()
+    return {
+        "id": conversation.id,
+        "session_id": conversation.session_id,
+        "channel": conversation.channel,
+        "status": conversation.status,
+        "created_at": conversation.created_at.isoformat(),
+        "ended_at": conversation.ended_at.isoformat() if conversation.ended_at else None,
+        "handed_off": conversation.handed_off,
+        "resolved_by": conversation.resolved_by,
+        "message_count": msg_count,
+    }
+
+
 @router.get("/conversations/{conversation_id}/messages")
 async def get_conversation_messages(conversation_id: str, db: Session = Depends(get_db)):
     messages = (
