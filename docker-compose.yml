@@ -32,6 +32,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "8000:8000"
+    environment:
+      - RASA_URL=http://rasa:5005
+      - RASA_ACTION_URL=http://actions:5055
     volumes:
       - ./backend:/app
     depends_on:

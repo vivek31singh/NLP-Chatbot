@@ -17,38 +17,36 @@ class RasaClient:
         self, message: str, sender_id: str, conversation_id: Optional[str] = None
     ) -> dict:
         """Send a message to Rasa and get the bot's response."""
-        # Use a simple alphanumeric sender_id (no UUIDs - Rasa regex handler chokes on hyphens)
         safe_sender = sender_id.replace("-", "")[:20]
 
-        payload = {
-            "message": message,
-            "sender": "user",
-        }
+        try:
+            parse_data = await self.parse_message(message)
+            intent_name = parse_data.get("intent", {}).get("name")
+            entities = parse_data.get("entities", [])
+            confidence = parse_data.get("intent", {}).get("confidence")
+        except Exception as e:
+            logger.error(f"Rasa parse error: {e}")
+            return {"bot_messages": [], "error": str(e)}
+
+        if not intent_name or intent_name == "nlu_fallback":
+            return {"bot_messages": [], "parse_data": parse_data}
 
         try:
-            response = await self.client.post(
-                f"/conversations/{safe_sender}/messages",
-                json=payload,
+            trigger_resp = await self.client.post(
+                f"/conversations/{safe_sender}/trigger_intent",
+                json={"name": intent_name, "entities": entities},
+                timeout=30.0,
             )
-            response.raise_for_status()
-        except httpx.HTTPStatusError as e:
-            logger.error(f"Rasa send error: {e.response.status_code} - {e.response.text}")
-            return {"bot_messages": [], "error": str(e)}
-        except httpx.ConnectError:
-            logger.error("Cannot connect to Rasa server. Is it running on port 5005?")
-            return {"bot_messages": [], "error": "Rasa server not reachable"}
-
-        # Wait for Rasa to process with retries
-        import asyncio
-        for attempt in range(10):
-            await asyncio.sleep(1.0)
-            try:
-                bot_response = await self.get_response(safe_sender)
-                if bot_response:
-                    return {"bot_messages": bot_response}
-            except Exception as e:
-                logger.warning(f"Poll attempt {attempt + 1} failed: {e}")
-        return {"bot_messages": []}
+            trigger_resp.raise_for_status()
+            result = trigger_resp.json()
+            bot_messages = result.get("messages", [])
+            for msg in bot_messages:
+                msg["parse_data"] = parse_data
+                msg["confidence"] = confidence
+            return {"bot_messages": bot_messages, "parse_data": parse_data}
+        except Exception as e:
+            logger.error(f"Rasa trigger_intent error: {e}")
+            return {"bot_messages": [], "error": str(e), "parse_data": parse_data}
 
     async def get_response(self, sender_id: str) -> list:
         """Get the latest bot responses from Rasa."""
@@ -74,9 +72,8 @@ class RasaClient:
         return response.json()
 
     async def health_check(self) -> bool:
-        """Check if Rasa server is healthy."""
         try:
-            response = await self.client.get("/health", timeout=5.0)
+            response = await self.client.get("/version", timeout=5.0)
             return response.status_code == 200
         except Exception:
             return False

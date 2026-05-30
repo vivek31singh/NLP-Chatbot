@@ -1,0 +1,15 @@
+node_modules
+__pycache__
+*.pyc
+.git
+frontend
+backend
+report
+models/*.tar.gz
+context
+*.db
+seed_data.ps1
+take_screenshots.*
+humanizer.md
+AGENTS.md
+.kilo

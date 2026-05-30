@@ -36,13 +36,17 @@ async def process_message(
         db.refresh(bot_message)
         return ChatMessageResponse(
             conversation_id=conversation_id,
-            message_id=bot_message.id,
+            message_id=str(bot_message.id),
             sender_type="system",
             content=bot_message.content,
             timestamp=bot_message.created_at,
         )
 
     bot_messages = result.get("bot_messages", [])
+    parse_data = result.get("parse_data") or {}
+    intent_info = parse_data.get("intent", {}) or {}
+    entities = parse_data.get("entities", []) or []
+    confidence = intent_info.get("confidence")
 
     if not bot_messages:
         return ChatMessageResponse(
@@ -50,18 +54,20 @@ async def process_message(
             message_id=str(uuid.uuid4()),
             sender_type="bot",
             content="I'm sorry, I couldn't process your request. Please try again.",
+            intent=intent_info.get("name"),
+            entities=entities,
+            confidence=confidence,
             timestamp=datetime.utcnow(),
         )
 
-    # Get the last bot message
-    last_bot = bot_messages[-1]
-    bot_text = last_bot.get("text", "")
+    # Collect all bot message texts
+    all_texts = []
+    for msg in bot_messages:
+        text = msg.get("text", "")
+        if text:
+            all_texts.append(text)
 
-    # Extract NLU data from parse_data if available
-    parse_data = last_bot.get("parse_data") or {}
-    intent_info = parse_data.get("intent", {}) or {}
-    entities = parse_data.get("entities", []) or []
-    confidence = intent_info.get("confidence")
+    bot_text = " ".join(all_texts) if all_texts else ""
 
     # Store bot message in database
     bot_message = Message(
@@ -97,7 +103,7 @@ async def process_message(
 
     return ChatMessageResponse(
         conversation_id=conversation_id,
-        message_id=bot_message.id,
+        message_id=str(bot_message.id),
         sender_type="bot",
         content=bot_text,
         intent=intent_info.get("name"),

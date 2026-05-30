@@ -80,7 +80,7 @@ stories:
 - story: complaint and handoff
   steps:
   - intent: complaint
-  - action: utter_complaint_acknowledge
+  - action: action_file_complaint
   - intent: handoff_to_human
   - action: action_escalate_to_agent
 

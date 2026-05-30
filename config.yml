@@ -4,7 +4,6 @@ language: en
 
 pipeline:
 - name: WhitespaceTokenizer
-- name: RegexFeaturizer
 - name: LexicalSyntacticFeaturizer
 - name: CountVectorsFeaturizer
 - name: CountVectorsFeaturizer
@@ -32,3 +31,4 @@ policies:
   max_history: 5
   epochs: 100
   constrain_similarities: true
+assistant_id: 20260529-060930-relaxed-thorn
